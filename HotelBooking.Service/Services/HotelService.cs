@@ -1,148 +1,39 @@
-﻿using HotelBooking.DAL.IRepositories;
-using HotelBooking.DAL.Repositories;
-using HotelBooking.Domain.Entities;
-using HotelBooking.Service.DTOs;
+﻿using HotelBooking.Service.DTOs;
 using HotelBooking.Service.Helpers;
 using HotelBooking.Service.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace HotelBooking.Service.Services;
-
-public class HotelService : IHotelService
+namespace HotelBooking.Service.Services
 {
-    private readonly IGenericRepository<Hotel> hotelRepository;
-    private long id = 1;
-    public HotelService()
+    public class HotelService : IHotelService
     {
-        hotelRepository = new GenericRepository<Hotel>();
-    }
-    public async Task<GenericResponse<Hotel>> CreateAsync(HotelCreationDto hotel)
-    {
-        var models = await this.hotelRepository.GetAllAsync();
-        var model = models.FirstOrDefault(x => x.Name == hotel.Name);
-
-        if (model is not null)
+        public ValueTask<Response<HotelDto>> AddHotelAsync(HotelForCreationDto hotelForCreationDto)
         {
-            return new GenericResponse<Hotel>
-            {
-                StatusCode = 404,
-                Message = "This category is already exists",
-                Value = null,
-            };
-        }
-        var mappedModel = new Hotel()
-        {
-            Name = hotel.Name,
-            Id= id++,
-            CreatedAt = DateTime.UtcNow,
-        };
-        await hotelRepository.CreateAsync(mappedModel);
-
-        return new GenericResponse<Hotel>
-        {
-            StatusCode = 200,
-            Message = "New category created",
-            Value = mappedModel
-        };
-    }
-
-  
-    public async Task<GenericResponse<Hotel>> DeleteAsync(long id)
-    {
-        var model = await this.hotelRepository.GetByIdAsync(id);
-        if (model is null)
-        {
-            return new GenericResponse<Hotel>
-            {
-                StatusCode = 404,
-                Message = "Not found",
-                Value = null
-            };
-        }
-        await this.hotelRepository.DeleteAsync(model.Id);
-
-        return new GenericResponse<Hotel>
-        {
-            StatusCode = 200,
-            Message = "Successfully deleted )",
-            Value = model,
-        };
-    }
-
-    public async Task<GenericResponse<List<Hotel>>> GetAllAsync(Predicate<Hotel> predicate)
-    {
-        var models = await hotelRepository.GetAllAsync(predicate);
-        if (models is null)
-        {
-            return new GenericResponse<List<Hotel>>
-            {
-                StatusCode = 404,
-                Message = "Empty",
-                Value = null,
-            };
-        }
-        return new GenericResponse<List<Hotel>>
-        {
-            StatusCode = 200,
-            Message = "Ok )",
-            Value = models
-        };
-    }
-
-    public async Task<GenericResponse<Hotel>> GetByIdAsync(long id)
-    {
-        var model = await this.hotelRepository.GetByIdAsync(id);
-
-        if (model is null)
-        {
-            return new GenericResponse<Hotel>
-            {
-                StatusCode = 404,
-                Message = "Not found",
-                Value = null,
-            };
+            throw new NotImplementedException();
         }
 
-        return new GenericResponse<Hotel>
+        public ValueTask<Response<bool>> DeleteHotelAsync(int id)
         {
-            StatusCode = 200,
-            Message = "Ok )",
-            Value = model,
-
-        };
-    }
-
-    public async Task<GenericResponse<Hotel>> UpdateAsync(long id, HotelCreationDto hotel)
-    {
-        var model = await this.hotelRepository.GetByIdAsync(id);
-
-        if (model is null)
-        {
-            return new GenericResponse<Hotel>
-            {
-                StatusCode = 404,
-                Message = "Not found",
-                Value = null,
-            };
+            throw new NotImplementedException();
         }
 
-        var mappedmodel = new Hotel()
+        public ValueTask<Response<List<HotelDto>>> GetAllHotelAsync()
         {
-            Id=id++,
-            CreatedAt = model.CreatedAt,
-            Name = model.Name,
-            UpdatedAt = DateTime.UtcNow
+            throw new NotImplementedException();
+        }
 
-        };
-
-        var res = await this.hotelRepository.UpdateAsync(mappedmodel);
-
-        return new GenericResponse<Hotel>
+        public ValueTask<Response<HotelDto>> GetHotelByIdAsync(int id)
         {
-            StatusCode = 200,
-            Message = "Successfully updated )",
-            Value = mappedmodel,
-        };
+            throw new NotImplementedException();
+        }
+
+        public ValueTask<Response<HotelDto>> ModifyHotelAsync(int id, HotelForCreationDto hotelForCreationDto)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
-
-

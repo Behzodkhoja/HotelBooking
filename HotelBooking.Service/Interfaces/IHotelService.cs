@@ -6,10 +6,10 @@ namespace HotelBooking.Service.Interfaces;
 
 public interface IHotelService
 {
-    Task<GenericResponse<Hotel>> CreateAsync(HotelCreationDto hotel);
-    Task<GenericResponse<Hotel>> UpdateAsync(long id, HotelCreationDto hotel);
-    Task<GenericResponse<Hotel>> DeleteAsync(long id);
-    Task<GenericResponse<List<Hotel>>> GetAllAsync(Predicate<Hotel> predicate );
-    Task<GenericResponse<Hotel>> GetByIdAsync(long id);
+    ValueTask<Response<HotelDto>> AddHotelAsync(HotelForCreationDto hotelForCreationDto);
+    ValueTask<Response<HotelDto>> ModifyHotelAsync(int id, HotelForCreationDto hotelForCreationDto);
+    ValueTask<Response<bool>> DeleteHotelAsync(int id);
+    ValueTask<Response<HotelDto>> GetHotelByIdAsync(int id);
+    ValueTask<Response<List<HotelDto>>> GetAllHotelAsync();
 }
 

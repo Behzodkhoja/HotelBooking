@@ -1,8 +1,10 @@
 ﻿
 
+using HotelBooking.Domain.Common;
+
 namespace HotelBooking.Domain.Entities;
 
-public class RoomsAmenity
+public class RoomsAmenity:Auditable
 {
     public long Id { get; set; }
     public Room Room { get; set; }

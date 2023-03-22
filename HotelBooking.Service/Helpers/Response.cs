@@ -2,7 +2,7 @@
 
 namespace HotelBooking.Service.Helpers;
 
-public class GenericResponse<TResult>
+public class Response<TResult>
 {
     public int StatusCode { get; set; }
     public string Message { get; set; }

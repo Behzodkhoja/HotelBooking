@@ -1,6 +1,6 @@
 ﻿namespace HotelBooking.Service.DTOs;
 
-public class HotelCreationDto
+public class HotelForCreationDto
 {
     public string Name { get; set; }
     public string Country { get; set; }

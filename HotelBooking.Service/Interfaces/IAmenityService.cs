@@ -1,15 +1,16 @@
 ﻿using HotelBooking.Domain.Entities;
+using HotelBooking.Service.DTOs;
 using HotelBooking.Service.Helpers;
 
 namespace HotelBooking.Service.Interfaces;
 
 public interface IAmenityService
 {
-    Task<GenericResponse<Amenity>> CreateAsync(Amenity amenity);
-    Task <GenericResponse<Amenity>> UpdateAsync(long id,Amenity amenity);
-    Task <GenericResponse<Amenity>> DeleteAsync(long id);
-    Task<GenericResponse<List<Amenity>>> GetAllAsync(Predicate<Amenity> predicate);
-    Task<GenericResponse<Amenity>> GetByIdAsync(long id);
+    ValueTask<Response<AmenityDto>> AddAmenityAsync(AmenityForCreationDto amenityForCreationDto);
+    ValueTask<Response<AmenityDto>> ModifyAmenityAsync(int id, AmenityForCreationDto amenityForCreationDto);
+    ValueTask<Response<bool>> DeleteAmenityAsync(int id);
+    ValueTask<Response<AmenityDto>> GetAmenityByIdAsync(int id);
+    ValueTask<Response<List<AmenityDto>>> GetAllAmenityAsync();   
 }
 
 
