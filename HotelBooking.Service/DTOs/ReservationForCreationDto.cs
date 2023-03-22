@@ -2,7 +2,7 @@
 
 namespace HotelBooking.Service.DTOs;
 
-public class ReservationCreationDto
+public class ReservationForCreationDto
 {
     public User User { get; set; }
     public Room Room { get; set; }

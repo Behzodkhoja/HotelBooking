@@ -1,155 +1,139 @@
-﻿using HotelBooking.DAL.IRepositories;
+﻿using AutoMapper;
+using HotelBooking.DAL.IRepositories;
 using HotelBooking.DAL.Repositories;
 using HotelBooking.Domain.Entities;
+using HotelBooking.Service.DTOs;
 using HotelBooking.Service.Helpers;
 using HotelBooking.Service.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace HotelBooking.Service.Services;
-
-public class UserService : IUserService
+namespace HotelBooking.Service.Services
 {
-    private readonly IGenericRepository<User> userRepository;
-    public UserService()
+    public class UserService : IUserService
     {
-        userRepository = new GenericRepository<User>();
-    }
-    public async Task<GenericResponse<User>> CreateAsync(User user)
-    {
-        var models = await this.userRepository.GetAllAsync();
-        var model = models.FirstOrDefault(x => x.UserName == user.UserName);
-
-        if (model is not null)
+        private readonly IUserRepository userRepository = new UserRepository();
+        private readonly IMapper mapper;
+        public UserService()
         {
-            return new GenericResponse<User>
-            {
-                StatusCode = 404,
-                Message = "This category is already exists",
-                Value = null,
-            };
+
         }
-        var mappedModel = new User()
+        public UserService(IMapper mapper)
         {
-            
-            CreatedAt = DateTime.UtcNow,
-            UserName= user.UserName,
-            CardMoney= user.CardMoney,
-            CardNumber= user.CardNumber,
-            Password= user.Password,
-            Role = user.Role,
-
-        };
-        await userRepository.CreateAsync(mappedModel);
-
-        return new GenericResponse<User>
+            this.mapper = mapper;
+        }
+        public async ValueTask<Response<UserDto>> AddUserAsync(UserDto userDto)
         {
-            StatusCode = 200,
-            Message = "New category created",
-            Value = mappedModel
-        };
-    }
 
-    public async Task<GenericResponse<User>> DeleteAsync(long id)
-    {
-        var model = await this.userRepository.GetByIdAsync(id);
-        if (model is null)
-        {
-            return new GenericResponse<User>
+            var room = userRepository.SelectAllAsync()
+            .FirstOrDefault(x => x.Username.ToLower() == userDto.Username.ToLower());
+            if (room is null)
             {
-                StatusCode = 404,
-                Message = "Not found",
+                var newUser = mapper.Map<User>(userRepository);
+                var newResult = await userRepository.InsertUserAsync(newUser);
+                var mappedUser = mapper.Map<UserDto>(newResult);
+
+                return new Response<UserDto>()
+                {
+                    StatusCode = 200,
+                    Message = "Success",
+                    Value = mappedUser
+                };
+            }
+            return new Response<UserDto>()
+            {
+                StatusCode = 403,
+                Message = "Category is alredy exists!",
                 Value = null
             };
         }
-        await this.userRepository.DeleteAsync(model.Id);
 
-        return new GenericResponse<User>
+        public async ValueTask<Response<bool>> DeleteUserAsync(int id)
         {
-            StatusCode = 200,
-            Message = "Successfully deleted )",
-            Value = model,
-        };
-    }
-
-    public async Task<GenericResponse<List<User>>> GetAllAsync(Predicate<User> predicate)
-    {
-        var models = await userRepository.GetAllAsync(predicate);
-        if (models is null)
-        {
-            return new GenericResponse<List<User>>
+            var user = await userRepository.SelectUserAsync(id);
+            if (user is null)
             {
-                StatusCode = 404,
-                Message = "Empty",
-                Value = null,
-            };
-        }
-        return new GenericResponse<List<User>>
-        {
-            StatusCode = 200,
-            Message = "Ok )",
-            Value = models
-        };
-    }
-
-    public async Task<GenericResponse<User>> GetByIdAsync(long id)
-    {
-        var model = await this.userRepository.GetByIdAsync(id);
-
-        if (model is null)
-        {
-            return new GenericResponse<User>
+                return new Response<bool>()
+                {
+                    StatusCode = 404,
+                    Message = "NOT FOUND",
+                    Value = false
+                };
+            }
+            await userRepository.DeleteUserAsync(id);
+            return new Response<bool>()
             {
-                StatusCode = 404,
-                Message = "Not found",
-                Value = null,
+                StatusCode = 200,
+                Message = "Success",
+                Value = true
             };
         }
 
-        return new GenericResponse<User>
+        public async ValueTask<Response<List<UserDto>>> GetAllUserAsync()
         {
-            StatusCode = 200,
-            Message = "Ok )",
-            Value = model,
-
-        };
-    }
-
-    public async Task<GenericResponse<User>> UpdateAsync(long id, User user)
-    {
-        var model = await this.userRepository.GetByIdAsync(id);
-
-        if (model is null)
-        {
-            return new GenericResponse<User>
+            var user = userRepository.SelectAllAsync();
+            var mappedUser = mapper.Map<List<UserDto>>(user);
+            return new Response<List<UserDto>>()
             {
-                StatusCode = 404,
-                Message = "Not found",
-                Value = null,
+                StatusCode = 200,
+                Message = "Success",
+                Value = mappedUser
             };
         }
 
-        var mappedmodel = new User()
+        public async ValueTask<Response<UserDto>> GetUserByIdAsync(int id)
         {
-            CreatedAt = DateTime.UtcNow,
-            UserName = user.UserName,
-            CardMoney = user.CardMoney,
-            CardNumber = user.CardNumber,
-            Password = user.Password,
-            Role = user.Role,
-            UpdatedAt = DateTime.UtcNow,
-            Id = user.Id,
-        };
+            var user = await userRepository.SelectUserAsync(id);
+            if (user is null)
+            {
+                return new Response<UserDto>()
+                {
+                    StatusCode = 404,
+                    Message = "NOT FOUND",
+                    Value = null
+                };
+            }
+            var mappedUSer = mapper.Map<UserDto>(user);
+            return new Response<UserDto>()
+            {
+                StatusCode = 200,
+                Message = "Success",
+                Value = mappedUSer
+            };
+        }
+
+        public async ValueTask<Response<UserDto>> ModifyUserAsync(int id, UserDto userDto)
+        {
+            var user = await userRepository.SelectUserAsync(id);
+            if (user is null)
+            {
+                return new Response<UserDto>()
+                {
+                    StatusCode = 404,
+                    Message = "NOT FOUND",
+                    Value = null
+                };
+            }
+            user.LastName = userDto.LastName;
+            user.FirstName = userDto.FirstName;
+            user.Username = userDto.Username;
+            user.Phone = userDto.Phone;
+            user.Role = userDto.Role;
+            user.UpdatedAt = DateTime.Now;
             
-        var res = await this.userRepository.UpdateAsync(mappedmodel);
 
-        return new GenericResponse<User>
-        {
-            StatusCode = 200,
-            Message = "Successfully updated )",
-            Value = mappedmodel,
-        };
+            await userRepository.UpdateUserAsync(user);
+            var mappedRoom = mapper.Map<UserDto>(user);
 
+            return new Response<UserDto>()
+            {
+                StatusCode = 200,
+                Message = "Success",
+                Value = mappedRoom
+            };
+        }
     }
 }
-
-
-

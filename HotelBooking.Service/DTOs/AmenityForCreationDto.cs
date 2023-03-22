@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HotelBooking.Presentation.Ui
+namespace HotelBooking.Service.DTOs
 {
-    internal class UserUi
+    public class AmenityForCreationDto
     {
+        public string Name { get; set; }
     }
 }

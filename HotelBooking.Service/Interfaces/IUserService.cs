@@ -1,15 +1,16 @@
 ﻿using HotelBooking.Domain.Entities;
+using HotelBooking.Service.DTOs;
 using HotelBooking.Service.Helpers;
 
 namespace HotelBooking.Service.Interfaces;
 
 public interface IUserService
 {
-    Task<GenericResponse<User>> CreateAsync(User user);
-    Task<GenericResponse<User>> UpdateAsync(long id, User user);
-    Task<GenericResponse<User>> DeleteAsync(long id);
-    Task<GenericResponse<List<User>>> GetAllAsync(Predicate<User> predicate);
-    Task<GenericResponse<User>> GetByIdAsync(long id);
+    ValueTask<Response<UserDto>> AddUserAsync(UserDto userDto);
+    ValueTask<Response<UserDto>> ModifyUserAsync(int id, UserDto userDto);
+    ValueTask<Response<bool>> DeleteUserAsync(int id);
+    ValueTask<Response<UserDto>> GetUserByIdAsync(int id);
+    ValueTask<Response<List<UserDto>>> GetAllUserAsync();
 }
 
 

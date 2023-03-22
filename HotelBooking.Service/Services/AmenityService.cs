@@ -1,6 +1,8 @@
-﻿using HotelBooking.DAL.IRepositories;
+﻿using AutoMapper;
+using HotelBooking.DAL.IRepositories;
 using HotelBooking.DAL.Repositories;
 using HotelBooking.Domain.Entities;
+using HotelBooking.Service.DTOs;
 using HotelBooking.Service.Helpers;
 using HotelBooking.Service.Interfaces;
 
@@ -8,152 +10,121 @@ namespace HotelBooking.Service.Services;
 
 public class AmenityService : IAmenityService
 {
+    private readonly IAmenityRepository amenityRepository = new AmenityRepository();
+    private readonly IMapper mapper;
 
-    private readonly IGenericRepository<Amenity> amenityRepository;
     public AmenityService()
     {
-        amenityRepository = new GenericRepository<Amenity>();
+
     }
-
-    public async Task<GenericResponse<Amenity>> CreateAsync(Amenity amenity)
+    public AmenityService(IMapper mapper)
     {
-
-        var models = await this.amenityRepository.GetAllAsync();
-        var model = models.FirstOrDefault(x => x.Name == amenity.Name);
-
-        if (model is not null)
+        this.mapper = mapper;
+    }
+    public async ValueTask<Response<AmenityDto>> AddAmenityAsync(AmenityDto amenityDto)
+    {
+        var amenity = amenityRepository.SelectAllAsync()
+            .FirstOrDefault(x => x.Name.ToLower() == amenityDto.Name.ToLower());
+        if (amenity is null)
         {
-            return new GenericResponse<Amenity>
+            var newAmentity = mapper.Map<Amenity>(amenityDto);
+            var newResult = await amenityRepository.InsertAmenityAsync(newAmentity);
+            var mappedAmentity = mapper.Map<AmenityDto>(newResult);
+
+            return new Response<AmenityDto>()
             {
-                StatusCode = 404,
-                Message = "This category is already exists",
-                Value = null,
+                StatusCode = 200,
+                Message = "Success",
+                Value = mappedAmentity
             };
         }
-        var mappedModel = new Amenity()
+        return new Response<AmenityDto>()
         {
-            Name = amenity.Name,
-            Id = amenity.Id,
-            CreatedAt = DateTime.UtcNow,
-        };
-        await amenityRepository.CreateAsync(mappedModel);
-
-        return new GenericResponse<Amenity>
-        {
-            StatusCode = 200,
-            Message = "New category created",
-            Value = mappedModel
+            StatusCode = 403,
+            Message = "Category is alredy exists!",
+            Value = null
         };
     }
-    public async Task<GenericResponse<Amenity>> DeleteAsync(long id)
+
+    public async ValueTask<Response<bool>> DeleteAmenityAsync(int id)
     {
-        var model = await this.amenityRepository.GetByIdAsync(id);
-        if (model is null)
+        var category = await amenityRepository.SelectAmenityAsync(id);
+        if (category is null)
         {
-            return new GenericResponse<Amenity>
+            return new Response<bool>()
             {
                 StatusCode = 404,
-                Message = "Not found",
+                Message = "NOT FOUND",
+                Value = false
+            };
+        }
+        await amenityRepository.DeleteAmenityAsync(id);
+        return new Response<bool>()
+        {
+            StatusCode = 200,
+            Message = "Success",
+            Value = true
+        };
+    }
+
+    public async ValueTask<Response<List<AmenityDto>>> GetAllAmenityAsync()
+    {
+        var amenity = amenityRepository.SelectAllAsync();
+        var mappedAmenity = mapper.Map<List<AmenityDto>>(amenity);
+        return new Response<List<AmenityDto>>()
+        {
+            StatusCode = 200,
+            Message = "Success",
+            Value = mappedAmenity
+        };
+    }
+
+    public async ValueTask<Response<AmenityDto>> GetAmenityByIdAsync(int id)
+    {
+        var amenity = await amenityRepository.SelectAmenityAsync(id);
+        if (amenity is null)
+        {
+            return new Response<AmenityDto>()
+            {
+                StatusCode = 404,
+                Message = "NOT FOUND",
                 Value = null
             };
         }
-        await this.amenityRepository.DeleteAsync(model.Id);
-
-        return new GenericResponse<Amenity>
+        var mappedAmenity = mapper.Map<AmenityDto>(amenity);
+        return new Response<AmenityDto>()
         {
             StatusCode = 200,
-            Message = "Successfully deleted )",
-            Value = model,
+            Message = "Success",
+            Value = mappedAmenity
         };
     }
-    public async Task<GenericResponse<List<Amenity>>> GetAllAsync(Predicate<Amenity> predicate)
+
+    public async ValueTask<Response<AmenityDto>> ModifyAmenityAsync(int id, AmenityDto amenityDto)
     {
-        var models = await amenityRepository.GetAllAsync(predicate);
-        if (models is null)
+        var amenity = await amenityRepository.SelectAmenityAsync(id);
+        if (amenity is null)
         {
-            return new GenericResponse<List<Amenity>>
+            return new Response<AmenityDto>()
             {
                 StatusCode = 404,
-                Message = "Empty",
-                Value = null,
+                Message = "NOT FOUND",
+                Value = null
             };
         }
-        return new GenericResponse<List<Amenity>>
+        amenity.Name = amenityDto.Name;
+        amenity.UpdatedAt = DateTime.Now;
+        
+        await amenityRepository.UpdateAmenityAsync(amenity);
+        var mappedAmenity = mapper.Map<AmenityDto>(amenity);
+
+        return new Response<AmenityDto>()
         {
             StatusCode = 200,
-            Message = "Ok )",
-            Value = models
+            Message = "Success",
+            Value = mappedAmenity
         };
+        
+
     }
-    public async Task<GenericResponse<Amenity>> GetByIdAsync(long id)
-    {
-        var model = await this.amenityRepository.GetByIdAsync(id);
-
-        if (model is null)
-        {
-            return new GenericResponse<Amenity>
-            {
-                StatusCode = 404,
-                Message = "Not found",
-                Value = null,
-            };
-        }
-
-        return new GenericResponse<Amenity>
-        {
-            StatusCode = 200,
-            Message = "Ok )",
-            Value = model,
-
-        };
-    }
-    public async Task<GenericResponse<Amenity>> UpdateAsync(long id, Amenity amenity)
-    {
-        var model = await this.amenityRepository.GetByIdAsync(id);
-
-        if (model is null)
-        {
-            return new GenericResponse<Amenity>
-            {
-                StatusCode = 404,
-                Message = "Not found",
-                Value = null,
-            };
-        }
-
-        var mappedmodel = new Amenity()
-        {
-            Id = model.Id,
-            CreatedAt = model.CreatedAt,
-            Name = model.Name,
-            UpdatedAt = DateTime.UtcNow
-            
-        };
-
-        var res = await this.amenityRepository.UpdateAsync(mappedmodel);
-
-        return new GenericResponse<Amenity>
-        {
-            StatusCode = 200,
-            Message = "Successfully updated )",
-            Value = mappedmodel,
-        };
-    }
-
 }
-
-
-
-
-    
-    
-
-    
-
-
-
-
-
-
-
-

@@ -2,7 +2,7 @@
 
 namespace HotelBooking.Service.DTOs;
 
-public class RoomCreationDto
+public class RoomForCreationDto
 {
     public Hotel Hotel { get; set; }
     public decimal Price { get; set; }

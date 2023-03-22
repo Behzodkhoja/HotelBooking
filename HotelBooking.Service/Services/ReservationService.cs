@@ -1,161 +1,143 @@
-﻿using HotelBooking.DAL.IRepositories;
+﻿using AutoMapper;
+using HotelBooking.DAL.IRepositories;
 using HotelBooking.DAL.Repositories;
 using HotelBooking.Domain.Entities;
+using HotelBooking.Service.DTOs;
 using HotelBooking.Service.Helpers;
 using HotelBooking.Service.Interfaces;
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace HotelBooking.Service.Services;
-
-public class ReservationService : IReservationService
+namespace HotelBooking.Service.Services
 {
-    private readonly IGenericRepository<Reservation> reservationRepository;
-    public ReservationService()
+    public class ReservationService : IReservationService
     {
-        reservationRepository = new GenericRepository<Reservation>();
-    }
-    public async Task<GenericResponse<Reservation>> CreateAsync(Reservation reservation)
-    {
-        var models = await this.reservationRepository.GetAllAsync();
-        var model = models.FirstOrDefault(x => x.FirstName == reservation.FirstName);
-
-        if (model is not null)
+        private readonly IReservationRepository reservationRepository = new ReservationRepository();
+        private readonly IMapper mapper;
+        public ReservationService()
         {
-            return new GenericResponse<Reservation>
-            {
-                StatusCode = 404,
-                Message = "This category is already exists",
-                Value = null,
-            };
+
         }
-        var mappedModel = new Reservation()
+        public ReservationService(IMapper mapper)
         {
-            Id= reservation.Id,
-            FirstName = reservation.FirstName,
-            LastName = reservation.LastName,
-            Note= reservation.Note,
-            Payment = reservation.Payment,
-            PaymentType= reservation.PaymentType,
-            Status= reservation.Status,
-            ChackIn = reservation.ChackIn,
-            ChackOut= reservation.ChackOut,
-            CreatedAt = DateTime.UtcNow,
-        };
-        await reservationRepository.CreateAsync(mappedModel);
-
-        return new GenericResponse<Reservation>
+            this.mapper = mapper;
+        }
+        public async ValueTask<Response<ReservationDto>> AddReservationAsync(ReservationDto reservationDto)
         {
-            StatusCode = 200,
-            Message = "New category created",
-            Value = mappedModel
-        };
-    }
-
-    public async Task<GenericResponse<Reservation>> DeleteAsync(long id)
-    {
-        var model = await this.reservationRepository.GetByIdAsync(id);
-        if (model is null)
-        {
-            return new GenericResponse<Reservation>
+            var reservation = reservationRepository.SelectAllAsync()
+            .FirstOrDefault(x => x.User == reservationDto.User);
+            if (reservation is null)
             {
-                StatusCode = 404,
-                Message = "Not found",
+                var newhotel = mapper.Map<Reservation>(reservationDto);
+                var newResult = await reservationRepository.InsertReservationAsync(newhotel);
+                var mappedHotel = mapper.Map<ReservationDto>(newResult);
+
+                return new Response<ReservationDto>()
+                {
+                    StatusCode = 200,
+                    Message = "Success",
+                    Value = mappedHotel
+                };
+            }
+            return new Response<ReservationDto>()
+            {
+                StatusCode = 403,
+                Message = "Category is alredy exists!",
                 Value = null
             };
         }
-        await this.reservationRepository.DeleteAsync(model.Id);
 
-        return new GenericResponse<Reservation>
+        public async ValueTask<Response<bool>> DeleteReservationAsync(int id)
         {
-            StatusCode = 200,
-            Message = "Successfully deleted )",
-            Value = model,
-        };
-    }
-
-    public async Task<GenericResponse<List<Reservation>>> GetAllAsync(Predicate<Reservation> predicate)
-    {
-        var models = await reservationRepository.GetAllAsync(predicate);
-        if (models is null)
-        {
-            return new GenericResponse<List<Reservation>>
+            var reservation = await reservationRepository.SelectReservationAsync(id);
+            if (reservation is null)
             {
-                StatusCode = 404,
-                Message = "Empty",
-                Value = null,
-            };
-        }
-        return new GenericResponse<List<Reservation>>
-        {
-            StatusCode = 200,
-            Message = "Ok )",
-            Value = models
-        };
-    }
-
-    public async Task<GenericResponse<Reservation>> GetByIdAsync(long id)
-    {
-        var model = await this.reservationRepository.GetByIdAsync(id);
-
-        if (model is null)
-        {
-            return new GenericResponse<Reservation>
+                return new Response<bool>()
+                {
+                    StatusCode = 404,
+                    Message = "NOT FOUND",
+                    Value = false
+                };
+            }
+            await reservationRepository.DeleteReservationAsync(id);
+            return new Response<bool>()
             {
-                StatusCode = 404,
-                Message = "Not found",
-                Value = null,
-            };
-        }
-        return new GenericResponse<Reservation>
-        {
-            StatusCode = 200,
-            Message = "Ok )",
-            Value = model,
-
-        };
-    }
-
-    public async Task<GenericResponse<Reservation>> UpdateAsync(long id, Reservation reservation)
-    {
-        var model = await this.reservationRepository.GetByIdAsync(id);
-
-        if (model is null)
-        {
-            return new GenericResponse<Reservation>
-            {
-                StatusCode = 404,
-                Message = "Not found",
-                Value = null,
+                StatusCode = 200,
+                Message = "Success",
+                Value = true
             };
         }
 
-        var mappedmodel = new Reservation()
+        public  async ValueTask<Response<List<ReservationDto>>> GetAllReservationAsync()
         {
-            CreatedAt = reservation.CreatedAt,
-            UpdatedAt = DateTime.UtcNow,
-            FirstName = reservation.FirstName,
-            LastName = reservation.LastName,
-            Note = reservation.Note,
-            Payment = reservation.Payment,
-            PaymentType = reservation.PaymentType,
-            Status = reservation.Status,
-            ChackIn = reservation.ChackIn,
-            ChackOut = reservation.ChackOut,
-            Id= reservation.Id,
-        };
+            var reservation = reservationRepository.SelectAllAsync();
+            var mappedReservation = mapper.Map<List<ReservationDto>>(reservation);
+            return new Response<List<ReservationDto>>()
+            {
+                StatusCode = 200,
+                Message = "Success",
+                Value = mappedReservation
+            };
+        }
+
+        public async ValueTask<Response<ReservationDto>> GetReservationByIdAsync(int id)
+        {
+            var reservation = await reservationRepository.SelectReservationAsync(id);
+            if (reservation is null)
+            {
+                return new Response<ReservationDto>()
+                {
+                    StatusCode = 404,
+                    Message = "NOT FOUND",
+                    Value = null
+                };
+            }
+            var mappedReservation = mapper.Map<ReservationDto>(reservation);
+            return new Response<ReservationDto>()
+            {
+                StatusCode = 200,
+                Message = "Success",
+                Value = mappedReservation
+            };
+        }
+
+        public async ValueTask<Response<ReservationDto>> ModifyReservationAsync(int id, ReservationDto reservationDto)
+        {
+            var reservation = await reservationRepository.SelectReservationAsync(id);
+            if (reservation is null)
+            {
+                return new Response<ReservationDto>()
+                {
+                    StatusCode = 404,
+                    Message = "NOT FOUND",
+                    Value = null
+                };
+            }
+            reservation.LastName = reservationDto.LastName;
+            reservation.FirstName = reservationDto.FirstName;
+            reservation.Room = reservationDto.Room;
+            reservation.Note = reservation.Note;
+            reservation.Payment = reservationDto.Payment;
+            reservation.PaymentType = reservationDto.PaymentType;
+            reservation.User = reservationDto.User;
+            reservation.ChackIn = DateTime.Now;
             
-        var res = await this.reservationRepository.UpdateAsync(mappedmodel);
+            await reservationRepository.UpdateReservationAsync(reservation);
+            var mappedReservation = mapper.Map<ReservationDto>(reservation);
 
-        return new GenericResponse<Reservation>
-        {
-            StatusCode = 200,
-            Message = "Successfully updated )",
-            Value = mappedmodel,
-        };
-            
+            return new Response<ReservationDto>()
+            {
+                StatusCode = 200,
+                Message = "Success",
+                Value = mappedReservation
+            };
+        }
     }
 }
-            
-
 
 
 
