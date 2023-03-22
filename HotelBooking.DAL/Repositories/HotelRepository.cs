@@ -35,6 +35,9 @@ public class HotelRepository : IHotelRepository
     public async ValueTask<Hotel> SelectHotelAsync(Predicate<Hotel> predicate) =>
         await this.appDbContext.Hotels.Where(hotel => hotel.IsActive).FirstOrDefaultAsync(hotel => predicate(hotel));
 
+    public async ValueTask<Hotel> SelectHotelAsync(int id) =>
+        await appDbContext.Hotels.FirstOrDefaultAsync(s => s.Id.Equals(id));
+
     public async ValueTask<Hotel> UpdateHotelAsync(Hotel hotel)
     {
         EntityEntry<Hotel> entity = this.appDbContext.Hotels.Update(hotel);

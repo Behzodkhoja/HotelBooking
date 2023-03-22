@@ -42,6 +42,9 @@ namespace HotelBooking.DAL.Repositories
         public async ValueTask<User> SelectUserAsync(Predicate<User> predicate) =>
              await this.appDbContext.Users.Where(user => user.IsActive).FirstOrDefaultAsync(user => predicate(user));
 
+        public async ValueTask<User> SelectUserAsync(int id) =>
+         await appDbContext.Users.FirstOrDefaultAsync(s => s.Id.Equals(id));
+
         public async ValueTask<User> UpdateUserAsync(User user)
         {
             EntityEntry<User> entity = this.appDbContext.Users.Update(user);

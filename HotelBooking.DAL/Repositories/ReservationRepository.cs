@@ -36,8 +36,9 @@ namespace HotelBooking.DAL.Repositories
         public IQueryable<Reservation> SelectAllAsync() =>
             this.appDbContext.Reservations.Where(reservation => reservation.IsActive);
 
-        public async ValueTask<Reservation> SelectReservationAsync(Predicate<Reservation> predicate) =>
-             await this.appDbContext.Reservations.Where(reservation => reservation.IsActive).FirstOrDefaultAsync(reservation => predicate(reservation));
+
+        public async ValueTask<Reservation> SelectReservationAsync(int id) =>
+        await appDbContext.Reservations.FirstOrDefaultAsync(s => s.Id.Equals(id));
 
         public async ValueTask<Reservation> UpdateReservationAsync(Reservation reservation)
         {

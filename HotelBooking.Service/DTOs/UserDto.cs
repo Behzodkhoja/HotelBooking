@@ -13,8 +13,8 @@ namespace HotelBooking.Service.DTOs
         public int LastName { get; set; }
         public string Phone { get; set; }
         public string Role { get; set; }
+        public string Username { get; set; }
 
-        
         public static explicit operator UserDto(User user)
         {
             return new UserDto
@@ -23,6 +23,7 @@ namespace HotelBooking.Service.DTOs
                 LastName = user.LastName,
                 Phone = user.Phone,
                 Role = user.Role,
+                Username = user.Username,
             };
         }
 

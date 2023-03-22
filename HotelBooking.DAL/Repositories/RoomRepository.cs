@@ -39,6 +39,9 @@ namespace HotelBooking.DAL.Repositories
         public async ValueTask<Room> SelectRoomAsync(Predicate<Room> predicate) =>
             await this.appDbContext.Rooms.Where(rooms => rooms.IsActive).FirstOrDefaultAsync(rooms => predicate(rooms));
 
+        public async ValueTask<Room> SelectRoomAsync(int id) =>
+        await appDbContext.Rooms.FirstOrDefaultAsync(s => s.Id.Equals(id));
+
         public async ValueTask<Room> UpdateRoomAsync(Room room)
         {
             EntityEntry<Room> entity = this.appDbContext.Rooms.Update(room);

@@ -12,7 +12,7 @@ namespace HotelBooking.DAL.IRepositories
         ValueTask<Hotel> InsertHotelAsync(Hotel hotel);
         ValueTask<Hotel> UpdateHotelAsync(Hotel hotel);
         ValueTask<bool> DeleteHotelAsync(int id);
-        ValueTask<Hotel> SelectHotelAsync(Predicate<Hotel> hotel);
+        ValueTask<Hotel> SelectHotelAsync(int id);
         IQueryable<Hotel> SelectAllAsync();
     }
 }

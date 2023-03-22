@@ -36,8 +36,10 @@ public class AmenityRepository : IAmenityRepository
     public IQueryable<Amenity> SelectAllAsync() =>
         this.appDbContext.Amenities.Where(amenity => amenity.IsActive);
    
-    public async ValueTask<Amenity> SelectAmenityAsync(Predicate<Amenity> predicate) =>
-    await this.appDbContext.Amenities.Where(wallet => wallet.IsActive).FirstOrDefaultAsync(amenity => predicate(amenity));
+    
+
+    public async ValueTask<Amenity> SelectAmenityAsync(int id) =>
+       await appDbContext.Amenities.FirstOrDefaultAsync(s => s.Id.Equals(id));
 }
 
 

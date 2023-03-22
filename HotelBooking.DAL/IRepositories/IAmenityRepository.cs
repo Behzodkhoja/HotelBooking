@@ -12,7 +12,7 @@ namespace HotelBooking.DAL.IRepositories
         ValueTask<Amenity> InsertAmenityAsync(Amenity amenity);
         ValueTask<Amenity> UpdateAmenityAsync(Amenity amenity);
         ValueTask<bool> DeleteAmenityAsync(int id);
-        ValueTask<Amenity> SelectAmenityAsync(Predicate<Amenity> amenity);
-        IQueryable<Amenity> InsertAmenityAsync();
+        ValueTask<Amenity> SelectAmenityAsync(int id);
+        IQueryable<Amenity> SelectAllAsync();
     }
 }
